@@ -1,0 +1,125 @@
+version 12.1X47-D10.4;
+groups {
+    node0 {
+        system {
+            host-name Branch-node0;
+        }
+        interfaces {
+            fxp0 {
+                unit 0 {
+                    family inet {
+                        address 192.168.1.115/24;
+                    }
+                }
+            }
+        }
+    }
+    node1 {
+        system {
+            host-name Branch-node1;
+        }
+        interfaces {
+            fxp0 {
+                unit 0 {
+                    family inet {
+                        address 192.168.1.116/24;
+                    }
+                }
+            }
+        }
+    }
+}
+apply-groups "${node}";
+system {
+    
+    services {
+        ssh {
+            protocol-version v2;
+        }
+    }
+}
+chassis {
+    cluster {
+        reth-count 2;
+        redundancy-group 0 {
+            node 0 priority 200;
+            node 1 priority 100;
+        }
+        redundancy-group 1 {
+            node 0 priority 200;
+            node 1 priority 100;
+        }
+    }
+}
+interfaces {
+    ge-0/0/3 {
+        gigether-options {
+            redundant-parent reth0;
+        }
+    }
+    ge-7/0/3 {
+        gigether-options {
+            redundant-parent reth0;
+        }
+    }
+    fab0 {
+        fabric-options {
+            member-interfaces {
+                ge-0/0/2;
+            }
+        }
+    }
+    fab1 {
+        fabric-options {
+            member-interfaces {
+                ge-7/0/2;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 10.11.1.1/32;
+            }
+        }
+    }
+    reth0 {
+        redundant-ether-options {
+            redundancy-group 1;
+        }
+        unit 0 {
+            family inet {
+                address 10.10.1.2/24;
+            }
+        }
+    }
+}
+security {
+    zones {
+        security-zone WAN {
+            host-inbound-traffic {
+                protocols {
+                    ospf;
+                }
+            }
+            interfaces {
+                reth0.0;
+            }
+        }
+    }
+}
+routing-instances {
+    other_vr {
+        instance-type virtual-router;
+        interface reth0.0;
+        protocols {
+            ospf {
+                area 0.0.0.0 {
+                    interface reth0.0 {
+                        interface-type p2p;
+                    }
+                }
+            }
+        }
+    }
+}
