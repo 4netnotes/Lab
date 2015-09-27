@@ -1,0 +1,29 @@
+set system host-name firewall-HQ
+set interfaces ge-0/0/0 description HQ-OOB
+set interfaces ge-0/0/0 unit 0 family inet address 192.168.1.117/24
+set interfaces ge-0/0/1 description HQ-WAN
+set interfaces ge-0/0/1 unit 0 family inet address 10.10.1.1/24
+set interfaces ge-0/0/2 description HQ-Management
+set interfaces ge-0/0/2 unit 0 family inet address 10.20.1.1/24
+set protocols ospf area 0.0.0.0 interface ge-0/0/1.0 interface-type p2p
+set protocols ospf area 0.0.0.0 interface ge-0/0/2.0 passive
+set security log mode event
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 descripti                                                                                        on "ssh for managmenet"
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 match sou                                                                                        rce-address any
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 match des                                                                                        tination-address any
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 match app                                                                                        lication junos-ssh
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 match app                                                                                        lication junos-ping
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 then perm                                                                                        it
+set security policies from-zone HQ-WAN to-zone HQ-Management policy 10 then log                                                                                         session-init
+set security policies from-zone HQ-Management to-zone HQ-WAN policy 20 match sou                                                                                        rce-address any
+set security policies from-zone HQ-Management to-zone HQ-WAN policy 20 match des                                                                                        tination-address any
+set security policies from-zone HQ-Management to-zone HQ-WAN policy 20 match app                                                                                        lication junos-ping
+set security policies from-zone HQ-Management to-zone HQ-WAN policy 20 match app                                                                                        lication junos-ssh
+set security policies from-zone HQ-Management to-zone HQ-WAN policy 20 then perm                                                                                        it
+set security policies from-zone HQ-Management to-zone HQ-WAN policy 20 then log                                                                                         session-init
+set security zones security-zone HQ-WAN host-inbound-traffic system-services all
+set security zones security-zone HQ-WAN host-inbound-traffic protocols ospf
+set security zones security-zone HQ-WAN interfaces ge-0/0/1.0
+set security zones security-zone HQ-OOB host-inbound-traffic system-services all
+set security zones security-zone HQ-OOB interfaces ge-0/0/0.0 host-inbound-traff                                                                                        ic system-services all
+set security zones security-zone HQ-Management interfaces ge-0/0/2.0
